@@ -1,13 +1,7 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2008-2019 FIRST. All Rights Reserved.                        */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
-package frc.robot.subsystems;
+package frc.robot.drive;
 
 import java.util.StringJoiner;
+import java.util.logging.Logger;
 
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
@@ -63,7 +57,8 @@ import edu.wpi.first.wpiutil.math.MathUtil;
  * {@link edu.wpi.first.wpilibj.RobotDrive#mecanumDrive_Polar(double, double, double)} if a
  * deadband of 0 is used.
  */
-public class MechanumDriveSubsystem extends RobotDriveBase implements Sendable, AutoCloseable {
+public class AdvancedMecanumDrive extends RobotDriveBase implements Sendable, AutoCloseable {
+  private final Logger logger = Logger.getLogger(this.getClass().getName());
   private static int instances;
 
   private final SpeedController m_frontLeftMotor;
@@ -79,7 +74,7 @@ public class MechanumDriveSubsystem extends RobotDriveBase implements Sendable, 
    *
    * <p>If a motor needs to be inverted, do so before passing it in.
    */
-  public MechanumDriveSubsystem(SpeedController frontLeftMotor, SpeedController rearLeftMotor,
+  public AdvancedMecanumDrive(SpeedController frontLeftMotor, SpeedController rearLeftMotor,
                       SpeedController frontRightMotor, SpeedController rearRightMotor) {
     verify(frontLeftMotor, rearLeftMotor, frontRightMotor, rearRightMotor);
     m_frontLeftMotor = frontLeftMotor;
@@ -233,7 +228,7 @@ public class MechanumDriveSubsystem extends RobotDriveBase implements Sendable, 
    * @param zRotation The robot's rotation rate around the Z axis [-1.0..1.0]. Clockwise is positive.
    */
   @SuppressWarnings("ParameterName")
-  public void swivelCartesian(double ySpeed, double xSpeed, double zRotation, double maxThrottle) {
+  public void pivotCartesian(double ySpeed, double xSpeed, double zRotation, double maxThrottle) {
     if (!m_reported) {
       HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDrive2_MecanumPolar, 4);
       m_reported = true;
@@ -260,7 +255,7 @@ public class MechanumDriveSubsystem extends RobotDriveBase implements Sendable, 
 
     if (magnitude >= 0.5) { //Magnitude must be over 0.5
       if (theta >= 15*piOverEight || theta <= piOverEight) {
-        // Swivel Right Bar
+        // Pivot along right axis
         wheelSpeeds[MotorType.kFrontLeft.value] = zRotation;
         wheelSpeeds[MotorType.kRearLeft.value] = zRotation;
         if (zRotation > 0)
@@ -269,26 +264,26 @@ public class MechanumDriveSubsystem extends RobotDriveBase implements Sendable, 
           wheelSpeeds[MotorType.kFrontRight.value] = 0.2*zRotation; 
       }
       else if (theta > piOverEight && theta < 3*piOverEight) {
-        // Swivel Top Right Wheel
+        // Pivot along front right wheel
         wheelSpeeds[MotorType.kFrontLeft.value] = zRotation;
         wheelSpeeds[MotorType.kRearLeft.value] = zRotation;
         if (zRotation > 0)
           wheelSpeeds[MotorType.kRearRight.value] = 0.5*zRotation; // To Compensate
       }
       else if (theta >= 3*piOverEight && theta <= 5*piOverEight) {
-        // Swivel Top Bar
+        // Pivot along front axis
         wheelSpeeds[MotorType.kRearLeft.value] = zRotation;
         wheelSpeeds[MotorType.kRearRight.value] = -zRotation;
       }
       else if (theta > 5*piOverEight && theta < 7*piOverEight) {
-        // Swivel Top Left Wheel
+        // Pivot along front left wheel
         wheelSpeeds[MotorType.kFrontRight.value] = -zRotation;
         wheelSpeeds[MotorType.kRearRight.value] = -zRotation;
         if (zRotation < 0)
           wheelSpeeds[MotorType.kRearLeft.value] = -0.5*zRotation; // To Compensate
       }
       else if (theta >= 7*piOverEight && theta <= 9*piOverEight) {
-        // Swivel Left Bar
+        // Pivot along left axis
         wheelSpeeds[MotorType.kFrontRight.value] = -zRotation;
         wheelSpeeds[MotorType.kRearRight.value] = -zRotation;
         if (zRotation > 0)
@@ -297,19 +292,19 @@ public class MechanumDriveSubsystem extends RobotDriveBase implements Sendable, 
           wheelSpeeds[MotorType.kRearLeft.value] = -0.2*zRotation;
       }
       else if (theta > 9*piOverEight && theta < 11*piOverEight) {
-        // Swivel Bottom Left Wheel
+        // Pivot along left rear wheel
         wheelSpeeds[MotorType.kFrontRight.value] = -zRotation;
         wheelSpeeds[MotorType.kRearRight.value] = -zRotation;
         if (zRotation > 0)
           wheelSpeeds[MotorType.kFrontLeft.value] = -0.5*zRotation; // To Compensate
       }
       else if (theta >= 11*piOverEight && theta <= 13*piOverEight) {
-        // Swivel Bottom Bar
+        // Pivot along rear axis
         wheelSpeeds[MotorType.kFrontLeft.value] = zRotation;
         wheelSpeeds[MotorType.kFrontRight.value] = -zRotation;
       }
       else if (theta > 13*piOverEight && theta < 15*piOverEight) {
-        // Swivel Bottom Right Wheel
+        // Pivot along right rear wheel
         wheelSpeeds[MotorType.kFrontLeft.value] = zRotation;
         wheelSpeeds[MotorType.kRearLeft.value] = zRotation;
         if (zRotation < 0)

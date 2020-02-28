@@ -1,10 +1,3 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2018-2019 FIRST. All Rights Reserved.                        */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
 package frc.robot;
 
 /**
@@ -16,23 +9,23 @@ package frc.robot;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-    // Driver Joystick
-    public static final int driveJoystickChannel = 0;
-    public static final int pivotButton = 1;
-    public static final int limelightButton = 2;
+    public static final int kFrontLeftChannel = 11;
+    public static final int kRearLeftChannel = 12;
+    public static final int kFrontRightChannel = 13;
+    public static final int kRearRightChannel = 14;
+  
+    // TODO: Verify these assignment values
+    public static final int ShooterMotor1CanID = 16;
+    public static final int ShooterMotor2CanID = 18;
+    public static final int ShooterRamPCM = 1;
+    public static final int ShooterRamForwardModule = 1;
+    public static final int ShooterRamReverseModule = 6;
 
-    // Support Joystick
-    public static final int supportJoystickChannel = 1;
-    public static final int shooterButton = 3;
+    // TODO: Verify these assignment values
+    public static final int IntakeMotorCanID = 19;
+    public static final int IntakePistonPCM = 2;
+    public static final int IntakePistonForwardModule = 0;
+    public static final int IntakePistonReverseModule = 7;
 
-    // Drive Motors
-    public static final int driveFrontLeftChannel = 11;
-    public static final int driveRearLeftChannel = 12;
-    public static final int driveFrontRightChannel = 13;
-    public static final int driveRearRightChannel = 14;
-
-    // Shooter Motors
-    public static final int shootLeftChannel = 16;
-    public static final int shootRightChannel = 18;
-
+    public static final int kJoystickChannel = 0;
 }

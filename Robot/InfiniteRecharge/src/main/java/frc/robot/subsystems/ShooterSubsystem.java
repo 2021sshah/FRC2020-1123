@@ -1,78 +1,143 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2018-2019 FIRST. All Rights Reserved.                        */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
-import com.revrobotics.CANEncoder;
-import com.revrobotics.CANError;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMax.IdleMode;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-import edu.wpi.first.wpilibj.CAN;
-import edu.wpi.first.wpilibj.MotorSafety;
-
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.util.logging.Logger;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
+import com.ctre.phoenix.motorcontrol.NeutralMode;
+import com.ctre.phoenix.motorcontrol.TalonFXInvertType;
+import com.ctre.phoenix.motorcontrol.can.TalonFX;
+
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+import frc.robot.Constants;
+
+/**
+ * Creates a new ShooterSubsystem.
+ */
 public class ShooterSubsystem extends SubsystemBase {
-  /**
-   * Creates a new ShooterSubsystem.
-   */
-  private final CANSparkMax m_motorFixedA;
-  private final CANSparkMax m_motorFixedB;
-  private final CANSparkMax[] m_motors;
+  private Logger logger = Logger.getLogger(this.getClass().getName());
+  private TalonFX motorA = new TalonFX(Constants.ShooterMotor1CanID);
+  private TalonFX motorB = new TalonFX(Constants.ShooterMotor2CanID);
+  private DoubleSolenoid ballRamSolenoid = new DoubleSolenoid(Constants.ShooterRamPCM,
+      Constants.ShooterRamForwardModule, Constants.ShooterRamReverseModule);
+  private double motorSetPoint = 0.0;
+  private boolean subsystemActive = false;
 
-  private final Logger logger = Logger.getLogger(this.getClass().getName());
+  final static int ConfigTimeOut = 30;
 
-  CANEncoder m_motorFixedAEncoder;
-  CANEncoder m_motorFixedBEncoder;
-  CANEncoder[] m_motorEncoders;
+  public ShooterSubsystem() {
+    // Wipe any prior motor settings
+    motorA.configFactoryDefault();
+    motorB.configFactoryDefault();
 
-  public static final double kDefaultMaxOutput = 1.0;
-  protected double m_maxOutput = kDefaultMaxOutput;
-   
-  public ShooterSubsystem(CANSparkMax motorFixedA, CANSparkMax motorFixedB) {
+    // Set motor direction
+    motorA.setInverted(TalonFXInvertType.CounterClockwise);
+    motorB.setInverted(TalonFXInvertType.Clockwise);
 
-    this.m_motors = new CANSparkMax[6];
-    this.m_motorFixedA = motorFixedA;
-    this.m_motors[0] = motorFixedA;
-    this.m_motorFixedB = motorFixedB;
-    this.m_motors[1] = motorFixedB;
+    // TODO: Set motor current limits
 
-    m_motorEncoders = new CANEncoder[6];
-    m_motorFixedAEncoder = m_motorFixedA.getEncoder();
+    /* TODO: Is it necessary to set these inital values?
+     * motorA.configNominalOutputForward(0, ConfigTimeOut);
+     * motorA.configNominalOutputReverse(0, ConfigTimeOut);
+     * motorA.configPeakOutputForward(1, ConfigTimeOut);
+     * motorA.configPeakOutputReverse(-1, ConfigTimeOut);
+     * 
+     * motorB.configNominalOutputForward(0, ConfigTimeOut);
+     * motorB.configNominalOutputReverse(0, ConfigTimeOut);
+     * motorB.configPeakOutputForward(1, ConfigTimeOut);
+     * motorB.configPeakOutputReverse(-1, ConfigTimeOut);
+     */
 
-    m_motorEncoders[0] = m_motorFixedAEncoder;
-    m_motorFixedBEncoder = m_motorFixedB.getEncoder();
-    m_motorEncoders[1] = m_motorFixedBEncoder;
+    // Configure intial PID values
+    motorA.config_kF(0, 1, ConfigTimeOut);
+    motorA.config_kP(0, 0, ConfigTimeOut);
+    motorA.config_kI(0, 0, ConfigTimeOut);
+    motorA.config_kD(0, 0, ConfigTimeOut);
   }
 
-  public void Shoot() {
-    this.m_motorFixedA.set(1);
-    this.m_motorFixedB.set(-1);
+  public void SpinMotor(double desiredSpeed) {
+    motorSetPoint = desiredSpeed;
+    motorA.setNeutralMode(NeutralMode.Coast);
+    motorB.setNeutralMode(NeutralMode.Coast);
 
-    logger.info("Shoot was called");
-    SmartDashboard.putNumber("Shooter Motor 1 RPM ", m_motorFixedAEncoder.getVelocity());
-    SmartDashboard.putNumber("Shooter Motor 2 RPM ", m_motorFixedBEncoder.getVelocity());
+    motorA.set(ControlMode.Velocity, desiredSpeed);
+    motorB.follow(motorA);
+
+    subsystemActive = true;
+
+    logger.info("Shooter spinning at " + desiredSpeed);
+    SmartDashboard.putNumber("Shooter Motor 1 RPM ", motorA.getSelectedSensorVelocity());
+    SmartDashboard.putNumber("Shooter Motor 2 RPM ", motorB.getSelectedSensorVelocity());
   }
 
-  public void Test() {
-    logger.info("Reached Test");
+  public void fireBall() {
+    ballRamSolenoid.set(Value.kReverse);
+    logger.info("Shooter piston fired.");
   }
 
-  public void Stop(){
-    this.m_motorFixedA.stopMotor();
-    this.m_motorFixedB.stopMotor();
+  public void LoadBall() {
+    ballRamSolenoid.set(Value.kForward);
+    logger.info("Shooter piston retracted.");
+  }
+
+  public void Stop() {
+    motorA.set(ControlMode.PercentOutput, 0);
+    motorB.set(ControlMode.PercentOutput, 0);
+    subsystemActive = false;
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    // TODO: Update dashboard motor speed via NetworkTables
+  }
+
+  public boolean isActive(){
+    return this.subsystemActive;
+  }
+
+  public double getSetSpeed(){
+    return motorSetPoint;
+  }
+
+  public void setSpeed(double desiredSpeed){
+    this.motorSetPoint = desiredSpeed;
+    // Update the running motors with the new speed.
+    if(isActive())
+      this.SpinMotor(desiredSpeed);
+  }
+
+  /**
+   * Set the feed forward gain value, kf.
+   * @param kfVal
+   */
+  public void setForwardGain(double kfVal) {
+    motorA.config_kF(0, kfVal, ConfigTimeOut);
+  }
+
+  /**
+   * Set the proportial gain value, P.
+   * @param pVal
+   */
+  public void setPValue(double pVal) {
+    motorA.config_kP(0, pVal, ConfigTimeOut);
+  }
+
+  /**
+   * Set the integral value, I.
+   * @param iVal
+   */
+  public void setIValue(double iVal) {
+    motorA.config_kI(0, iVal, ConfigTimeOut);
+  }
+
+  /**
+   * Set the derivative value, D.
+   * @param dVal
+   */
+  public void setDValue(double dVal) {
+    motorA.config_kD(0, dVal, ConfigTimeOut);
   }
 }
