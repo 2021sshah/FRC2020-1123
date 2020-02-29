@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid.Value;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import frc.robot.Constants;
+import frc.robot.DashboardControlSystem;
 
 /**
  * Creates a new ShooterSubsystem.
@@ -63,12 +64,12 @@ public class ShooterSubsystem extends SubsystemBase {
     motorA.setNeutralMode(NeutralMode.Coast);
     motorB.setNeutralMode(NeutralMode.Coast);
 
-    motorA.set(ControlMode.Velocity, desiredSpeed);
+    motorA.set(ControlMode.Velocity, motorSetPoint);
     motorB.follow(motorA);
 
     subsystemActive = true;
 
-    logger.info("Shooter spinning at " + desiredSpeed);
+    logger.info("Shooter spinning at " + motorSetPoint);
     SmartDashboard.putNumber("Shooter Motor 1 RPM ", motorA.getSelectedSensorVelocity());
     SmartDashboard.putNumber("Shooter Motor 2 RPM ", motorB.getSelectedSensorVelocity());
   }
@@ -92,6 +93,7 @@ public class ShooterSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // TODO: Update dashboard motor speed via NetworkTables
+    motorSetPoint = DashboardControlSystem.getSliderSpeed();
   }
 
   public boolean isActive(){
