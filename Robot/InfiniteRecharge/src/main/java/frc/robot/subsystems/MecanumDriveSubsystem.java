@@ -36,8 +36,17 @@ public class MecanumDriveSubsystem extends SubsystemBase {
     m_robotDrive.driveCartesian(-yval, -xval, zval, throttle);
   }
 
+  public void FieldCartesian(double yval, double xval, double zval, double throttle, double angle) {
+    //logger.info(String.format("X: %s, Y: %s, Z: %s, G: %s", xval, yval, zval, gyroval));
+    m_robotDrive.driveCartesian(-yval, -xval, zval, throttle, angle);
+  }
+
   public void pivotCartesian(double yval, double xval, double zval, double throttle) {
     //logger.info(String.format("X: %s, Y: %s, Z: %s, G: %s", xval, yval, zval, gyroval));
     m_robotDrive.pivotCartesian(-yval, -xval, zval, throttle);
+  }
+
+  public void drivePolar(double magnitude, double angle, double zRotation){
+    m_robotDrive.drivePolar(magnitude, angle, zRotation);
   }
 }

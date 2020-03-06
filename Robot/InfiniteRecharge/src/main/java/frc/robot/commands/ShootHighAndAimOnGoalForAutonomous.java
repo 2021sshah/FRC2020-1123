@@ -1,5 +1,6 @@
 package frc.robot.commands;
 
+import frc.robot.Robot;
 import frc.robot.RobotContainer;
 import frc.robot.subsystems.ShooterSubsystem;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -10,26 +11,29 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import java.util.logging.Logger;
 
 import frc.robot.RobotContainer;
+import frc.robot.commands.RotateToGoal;
 
 
 /**
  * An example command that uses an example subsystem.
  */
-public class ShootCommand extends CommandBase {
-  @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
+public class ShootHighAndAimOnGoalForAutonomous extends CommandBase {
+  @SuppressWarnings({ "PMD.UnusedPrivateField", "PMD.SingularField" })
 
   private final Logger logger = Logger.getLogger(this.getClass().getName());
   int time = 0;
   int TimeSinceLastShot = 0;
+  RotateToGoal Aim = new RotateToGoal();
 
   /**
    * Creates a new ExampleCommand.
    *
    * @param subsystem The subsystem used by this command.
    */
-  public ShootCommand() {
+  public ShootHighAndAimOnGoalForAutonomous() {
     addRequirements(RobotContainer.getInstance().shooter);
     addRequirements(RobotContainer.getInstance().intakeSubsystem);
+    addRequirements(RobotContainer.getInstance().Gyro);
     // Use addRequirements() here to declare subsystem dependencies.
     }
 
@@ -40,7 +44,7 @@ public class ShootCommand extends CommandBase {
     RobotContainer.getInstance().shooter.SpinMotor(7400);
     RobotContainer.getInstance().intakeSubsystem.IntakeSlowHigh();
     RobotContainer.getInstance().shooter.ResetNumberOfBallsFired();
-    // NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").forceSetNumber(3);
+    NetworkTableInstance.getDefault().getTable("limelight").getEntry("ledMode").forceSetNumber(3);
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -48,11 +52,16 @@ public class ShootCommand extends CommandBase {
   public void execute() {
     time++;
     RobotContainer.getInstance().shooter.SpinMotor(7200);
-    if(time>50){
-      RobotContainer.getInstance().shooter.FireBallAndRetractHigh();
-    }  
-      // RobotContainer.getInstance().intakeSubsystem.IntakeSlow();
+    if(Aim.isFinished() == false){
+      Aim.execute();
+    }
+    if(RobotContainer.getInstance().Limelight.ifBox() == false || Aim.isFinished() == true){
+      if(time>50){
+        RobotContainer.getInstance().shooter.FireBallAndRetractHigh();
+      }  
+    }
   }
+  
 
   // Called once the command ends or is interrupted.
   @Override
@@ -69,7 +78,7 @@ public class ShootCommand extends CommandBase {
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    if(RobotContainer.getInstance().shooter.getNumberOfBallsFired() >= 6){
+    if(RobotContainer.getInstance().shooter.getNumberOfBallsFired() >= 4){
       return true;
     }
     return false;

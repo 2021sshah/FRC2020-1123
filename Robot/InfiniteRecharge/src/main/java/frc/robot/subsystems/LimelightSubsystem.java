@@ -1,6 +1,8 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.DashboardControlSystem;
+import frc.robot.RobotContainer;
 import edu.wpi.first.networktables.NetworkTableInstance;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -40,9 +42,17 @@ public class LimelightSubsystem extends SubsystemBase{
       Double area = NetworkTableInstance.getDefault().getTable("limelight").getEntry("ta").getDouble(0.0);
       SmartDashboard.putNumber("Area", area);
     }
-  
+
+    public double getX(){
+      return NetworkTableInstance.getDefault().getTable("limelight").getEntry("tx").getDouble(0.0);
+    }
+    
+    public boolean ifBox(){
+      return NetworkTableInstance.getDefault().getTable("limelight").getEntry("tv").getBoolean(false);
+    }
     @Override
     public void periodic() {
-      // This method will be called once per scheduler run
+      DashboardControlSystem.PutIsBox(ifBox());
+      getArea();
     }
 }
