@@ -31,15 +31,10 @@ public class AutonomousShootAndPickUpBalls extends CommandBase {
   double StartTime3 = 0;
   double StartTime4 = 0;
   boolean Step1 = true;
-  boolean Step1Canceled = false;
   boolean Step2 = false;
-  boolean Step2Canceled = true;
   boolean Step3 = false;
-  boolean Step3Canceled = true;
   boolean Step4 = false;
-  boolean Step4Canceled = true;
   boolean Step5 = false;
-  boolean Step5Canceled = true;
 
   /**
    * Creates a new ExampleCommand.
@@ -67,67 +62,52 @@ public class AutonomousShootAndPickUpBalls extends CommandBase {
   public void execute() {
     if(Step1 == true){
       shoothigh.execute();
-    }
-    if(shoothigh.isFinished() == true && Step1Canceled == false){
-      shoothigh.end(true);
-      Step1 = false;
-      Step2 = true;
-      Step3 = false;
-      StartTime = Timer.getFPGATimestamp();
-      Step1Canceled = true;
-      Step2Canceled = false;
+      if(shoothigh.isFinished() == true){
+        shoothigh.end(true);
+        Step1 = false;
+        Step2 = true;
+        StartTime = Timer.getFPGATimestamp();
+      }
     }
     if(Step2 == true){
-      m_subsystemDrive.driveCartesian(1, 0, 0.25, 0.75);
+      m_subsystemDrive.driveCartesian(1, 0, 0.25, 0.75); // Slams Right into Wall
+      if(Timer.getFPGATimestamp()-StartTime > 1){
+        Step2 = false;
+        Step3 = true;
+        StartTime2 = Timer.getFPGATimestamp();
+      }
     }
-    if(Timer.getFPGATimestamp()-StartTime > 1 && Step2Canceled == false){
-      Step1 = false;
-      Step2 = false;
-      Step3 = true;
-      Step4 = false;
-      StartTime2 = Timer.getFPGATimestamp();
-      Step2Canceled = true;
-      Step3Canceled = false;
+    if(Step3 == true){
+      m_subsystemDrive.driveCartesian(1, 0, 0, 0.5); // Into Wall, Calibrate
+      if(Timer.getFPGATimestamp()-StartTime2 > 2 ){
+        m_subsystemDrive.driveCartesian(0, 0, 0, 0);
+        Step3 = false;
+        Step4 = true;
+        calibrateGyro.initialize();
+        Intake.initialize();
+        StartTime3 = Timer.getFPGATimestamp();
+      }
     }
-
-     if(Step3 == true){
-      m_subsystemDrive.driveCartesian(1, 0, 0, 0.5);
-    }
-    if(Timer.getFPGATimestamp()-StartTime2 > 2 && Step3Canceled == false){
-      m_subsystemDrive.driveCartesian(0, 0, 0, 0);
-      Step1 = false;
-      Step2 = false;
-      Step3 = false;
-      Step4 = true;
-      calibrateGyro.initialize();
-      Intake.initialize();
-      StartTime3 = Timer.getFPGATimestamp();
-      Step3Canceled = true;
-      Step4Canceled = false;
-    }
-
     if(Step4 == true){
-      m_subsystemDrive.FieldCartesian(-1, 0, 0, 0.8, RobotContainer.getInstance().Gyro.getAngle());
-    }
-    if(Timer.getFPGATimestamp()-StartTime3>0.4 && Step4Canceled == false){
-      m_subsystemDrive.driveCartesian(0, 0, 0, 0);
-      Step4Canceled = true;
-      Step5Canceled = false;
-      Step5 = true;
-      StartTime4 = Timer.getFPGATimestamp();
+      m_subsystemDrive.FieldCartesian(-1, 0, 0, 0.8, RobotContainer.getInstance().Gyro.getAngle()); // Back off wall
+      if(Timer.getFPGATimestamp()-StartTime3>0.4){
+        m_subsystemDrive.driveCartesian(0, 0, 0, 0);
+        Step4 = false;
+        Step5 = true;
+        StartTime4 = Timer.getFPGATimestamp();
+      }
     }
     if(Step5 == true){
-      Intake.execute();
+      Intake.execute(); // Go for Kessel Run Balls
       m_subsystemDrive.FieldCartesian(0, -5, 0, 0.45, RobotContainer.getInstance().Gyro.getAngle());
-      StartTime4 = Timer.getFPGATimestamp();
-    }
-    if(Timer.getFPGATimestamp()-StartTime4 > 3 && Step5Canceled == false){
-      Step1 = false;
-      Step2 = false;
-      Step3 = false;
-      Step4 = false;
-      Step5 = false;
-      m_subsystemDrive.driveCartesian(0,0,0,0);
+      if(Timer.getFPGATimestamp()-StartTime4 > 3){ // We're DONE!!
+        Step1 = false;
+        Step2 = false;
+        Step3 = false;
+        Step4 = false;
+        Step5 = false;
+        m_subsystemDrive.driveCartesian(0,0,0,0);
+      }
     }
   }
   // Called once the command ends or is interrupted.

@@ -53,7 +53,7 @@ public class AutonomousCommandLowGoalShootAndMoveMore extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if(Timer.getFPGATimestamp()-StartTime<11.5 && InitShoot == false){
+    if(Timer.getFPGATimestamp()-StartTime < 1.5 && InitShoot == false){
       InitShoot = true;
       shootLow.initialize();
     }

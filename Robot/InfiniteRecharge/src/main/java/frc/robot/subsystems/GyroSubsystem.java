@@ -11,7 +11,7 @@ import com.kauailabs.navx.frc.AHRS;
 public class GyroSubsystem extends SubsystemBase {
   private final Logger logger = Logger.getLogger(this.getClass().getName());
 
-    AHRS Gyro = new AHRS();
+  AHRS Gyro = new AHRS();
 
   public GyroSubsystem() {
     }
